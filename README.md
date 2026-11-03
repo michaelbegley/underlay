@@ -26,8 +26,12 @@ Open http://localhost:2567 — the server serves the client too.
 ## The story
 Talk to the night clerk. Clear floor 1 for the badge. Three seals on floors 2–4. The freezer on 5. Credits.
 
+## Play
+- **https://underlay.onrender.com** — server + client together (free tier: first load after idle takes ~30–60 s to wake)
+- **https://michaelbegley.github.io/underlay/** — the same client on GitHub Pages, talking to the Render server
+
 ## Hosting
-The server needs a Node host that keeps a WebSocket open (Render, Railway, Fly, a VPS). GitHub Pages can only host the client; it connects to whatever `SERVER_URL` points at in `public/index.html` (or `?server=wss://…` on the URL).
+The server needs a Node host that keeps a WebSocket open (Render, Railway, Fly, a VPS). GitHub Pages can only host the client; it connects to whatever `SERVER_URL` points at in `public/index.html` (currently `wss://underlay.onrender.com`) (or `?server=wss://…` on the URL).
 
 Free tiers sleep when idle — the first player of the evening waits ~30 s for the server to wake.
 
