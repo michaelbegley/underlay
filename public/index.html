@@ -93,18 +93,39 @@
   #joystickKnob { position:absolute; width:56px; height:56px; border-radius:50%;
                   background:rgba(200,200,176,.32); border:2px solid rgba(200,200,176,.55);
                   left:32px; top:32px; pointer-events:none; }
-  #attackBtn { position:absolute; width:86px; height:86px; border-radius:50%;
-               border:2px solid rgba(200,120,120,.5); background:rgba(160,40,40,.2);
-               color:#e0b0b0; font-size:11px; letter-spacing:1px; display:flex;
-               align-items:center; justify-content:center; pointer-events:auto; touch-action:none; }
-  #interactBtn { position:absolute; width:66px; height:66px; border-radius:50%;
-                 border:2px solid rgba(200,200,120,.45); background:rgba(100,100,40,.2);
-                 color:#e0e0a0; font-size:10px; display:flex; align-items:center;
-                 justify-content:center; pointer-events:auto; touch-action:none; }
-  #pauseBtn { position:absolute; top:10px; right:10px; width:40px; height:40px; border-radius:8px;
-              border:1px solid rgba(200,200,176,.3); background:rgba(10,10,20,.5);
-              color:#c8c8b0; font-size:15px; display:flex; align-items:center;
-              justify-content:center; pointer-events:auto; z-index:12; }
+  #lookArea { z-index:1; }
+  .tbtn { position:absolute; border-radius:50%; display:flex; flex-direction:column; align-items:center;
+          justify-content:center; pointer-events:auto; touch-action:none; z-index:10; line-height:1;
+          -webkit-user-select:none; user-select:none; letter-spacing:1px; }
+  .tbtn.held { filter:brightness(1.6); }
+  #attackBtn { right:22px; bottom:calc(104px + env(safe-area-inset-bottom)); width:96px; height:96px;
+               border:2px solid rgba(220,120,120,.6); background:rgba(160,40,40,.28);
+               color:#f0c0c0; font-size:13px; }
+  #interactBtn { right:128px; bottom:calc(36px + env(safe-area-inset-bottom)); width:76px; height:76px;
+                 border:2px solid rgba(220,220,130,.55); background:rgba(110,110,40,.28);
+                 color:#f0f0b0; font-size:12px; }
+  #touchBar { position:absolute; top:calc(10px + env(safe-area-inset-top)); left:50%; transform:translateX(-50%);
+              display:flex; gap:8px; z-index:12; pointer-events:none; }
+  #touchBar div { pointer-events:auto; touch-action:none; height:36px; min-width:44px; padding:0 10px; border-radius:8px;
+                  border:1px solid rgba(200,200,176,.3); background:rgba(10,10,20,.6); color:#c8c8b0;
+                  font-size:11px; letter-spacing:1px; display:flex; align-items:center; justify-content:center; }
+  #joystickBase { z-index:10; }
+  body.touch #hud { font-size:12px; top:calc(10px + env(safe-area-inset-top)); }
+  body.touch #status { top:calc(10px + env(safe-area-inset-top)); font-size:10px; max-width:34vw; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  body.touch #questPanel { top:calc(56px + env(safe-area-inset-top)); width:min(230px,60vw); }
+  body.touch #partyPanel { top:calc(56px + env(safe-area-inset-top)); }
+  body.touch #prompt { top:auto; bottom:calc(150px + env(safe-area-inset-bottom)); font-size:14px; }
+  body.touch #chatinput { bottom:auto; top:calc(56px + env(safe-area-inset-top)); }
+  body.touch #floorTag { bottom:calc(8px + env(safe-area-inset-bottom)); left:12px; right:auto; }
+  body.touch #inputBadge { display:none; }
+  body.touch #crosshair { display:none; }
+  body.touch #touchBar { top:calc(40px + env(safe-area-inset-top)); }
+  body.touch #questPanel { top:calc(86px + env(safe-area-inset-top)); }
+  body.touch #partyPanel { top:calc(86px + env(safe-area-inset-top)); }
+  body.touch #chatinput { top:calc(86px + env(safe-area-inset-top)); }
+  body.touch #dialogue { bottom:auto; top:calc(90px + env(safe-area-inset-top)); width:min(700px,94vw); padding:14px 16px 18px; z-index:50; }
+  body.touch.dlg #questPanel, body.touch.dlg #partyPanel, body.touch.dlg #prompt { display:none !important; }
+  body.touch #dialogue .line { font-size:15px; }
   body.controller-connected #touchLayer { display:none !important; }
   #inputBadge { position:fixed; bottom:8px; left:50%; transform:translateX(-50%); z-index:11;
                 font-size:9px; color:#4a4a3a; letter-spacing:1px; }
@@ -117,8 +138,7 @@
   <h2 id="versionLine">v7 · the five floors</h2>
   <input id="nameInput" maxlength="16" placeholder="Surveyor" autocomplete="off">
   <button id="enterBtn">Enter the Underlay</button>
-  <p>WASD move · Mouse look · Click attack · E / USE interact · Q quest log · P invite · Enter chat<br>
-     Touch: left stick moves, drag right side to look, ATTACK / USE buttons · Controller: L-stick move, R-stick look, A attack, X interact</p>
+  <p id="controlsHint">WASD move · Mouse look · Click attack · E interact · Q quest log · P invite · Enter chat</p>
   <p id="deviceHint" style="color:#8a8a6a;"></p>
 </div>
 
@@ -163,15 +183,17 @@
   <p>You closed all five seams.<br>The rice balls are still on the shelf.<br>The mentor is still missing.</p>
   <p style="color:#5a5a4a;">story · design · tech · art · sound — written in code<br>
      no ripped assets · no external art · no audio files</p>
-  <p style="color:#6a6a5a;font-size:11px;">Press R to return, or refresh to start again.</p>
+  <p style="color:#6a6a5a;font-size:11px;" id="creditsHint">Press R to return, or refresh to start again.</p>
 </div>
 
 <div id="touchLayer">
   <div id="lookArea"></div>
   <div id="joystickBase"><div id="joystickKnob"></div></div>
-  <div id="attackBtn">ATTACK</div>
-  <div id="interactBtn">USE</div>
-  <div id="pauseBtn">≡</div>
+  <div class="tbtn" id="attackBtn">ATTACK</div>
+  <div class="tbtn" id="interactBtn">USE</div>
+  <div id="touchBar">
+    <div id="questBtn">QUEST</div><div id="inviteBtn">INVITE</div><div id="chatBtn">CHAT</div><div id="pauseBtn">MENU</div>
+  </div>
 </div>
 <div id="inputBadge"></div>
 
@@ -191,8 +213,9 @@ const isTouch = window.matchMedia('(pointer: coarse)').matches &&
                 ('ontouchstart' in window || navigator.maxTouchPoints > 0);
 
 document.getElementById('deviceHint').textContent = isTouch
-  ? 'Detected: touch device — virtual controls on.'
-  : 'Detected: desktop — keyboard & mouse. Gamepad supported.';
+  ? 'Touch controls on. Add to your home screen for full screen.'
+  : 'Keyboard & mouse. Gamepad supported: L-stick move, R-stick look, A attack, X interact.';
+if (isTouch) document.getElementById('controlsHint').textContent = 'Left stick moves · drag the right side to look · ATTACK and USE buttons · QUEST / INVITE / CHAT / MENU up top';
 
 let padIndex = null;
 const getPad = () => {
@@ -221,8 +244,17 @@ window.addEventListener('gamepaddisconnected', (e) => {
   badge();
 });
 setInterval(() => { if (getPad() && !document.body.classList.contains('controller-connected')) onPadOn(); }, 800);
-if (isTouch) document.getElementById('touchLayer').classList.add('active');
+if (isTouch) { document.getElementById('touchLayer').classList.add('active'); document.body.classList.add('touch'); }
 badge();
+/* iOS ignores user-scalable=no: swallow double-taps and pinches outside text fields */
+(() => { let last = 0;
+  document.addEventListener('touchend', (e) => {
+    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON')) return;
+    const now = Date.now(); if (now - last < 350) e.preventDefault(); last = now;
+  }, { passive: false });
+  document.addEventListener('touchmove', (e) => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
+  for (const ev of ['gesturestart', 'gesturechange', 'gestureend']) document.addEventListener(ev, (e) => e.preventDefault(), { passive: false });
+})();
 
 /* =================================================================
    1. PROFILE (localStorage)
@@ -261,13 +293,15 @@ addEventListener('keyup', (e) => { keys[e.code] = false; });
   const knob = document.getElementById('joystickKnob');
   let active = null;
   const reset = () => {
-    base.style.left = (innerWidth * 0.17 - 60) + 'px';
-    base.style.top = (innerHeight * 0.76 - 60) + 'px';
+    const vh = (window.visualViewport ? visualViewport.height : innerHeight);
+    base.style.left = '26px';
+    base.style.top = (vh - 40 - 120) + 'px';
     knob.style.left = '32px'; knob.style.top = '32px';
     input.mx = 0; input.mz = 0;
   };
   reset();
   addEventListener('resize', reset);
+  if (window.visualViewport) visualViewport.addEventListener('resize', reset);
 
   base.addEventListener('pointerdown', (e) => {
     if (active !== null) return;
@@ -293,18 +327,20 @@ addEventListener('keyup', (e) => { keys[e.code] = false; });
   base.addEventListener('pointercancel', end);
 
   const hold = (el, key) => {
-    el.addEventListener('pointerdown', (e) => { input[key] = true; e.preventDefault(); });
-    el.addEventListener('pointerup', () => { input[key] = false; });
-    el.addEventListener('pointercancel', () => { input[key] = false; });
-    el.addEventListener('pointerleave', () => { input[key] = false; });
+    const off = () => { input[key] = false; el.classList.remove('held'); };
+    el.addEventListener('pointerdown', (e) => { input[key] = true; input[key + 'Press'] = true; el.classList.add('held'); try { el.setPointerCapture(e.pointerId); } catch (_) {} e.preventDefault(); });
+    el.addEventListener('pointerup', off);
+    el.addEventListener('pointercancel', off);
+    el.addEventListener('lostpointercapture', off);
   };
   hold(document.getElementById('attackBtn'), 'attack');
   hold(document.getElementById('interactBtn'), 'interact');
 
-  document.getElementById('pauseBtn').addEventListener('pointerdown', (e) => {
-    e.preventDefault();
-    showTitle();
-  });
+  const tap = (id, fn) => document.getElementById(id).addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); fn(); });
+  tap('pauseBtn', () => showTitle());
+  tap('questBtn', () => { const q = $('questPanel'); q.style.display = q.style.display === 'block' ? 'none' : 'block'; });
+  tap('inviteBtn', () => { if (started && mode === 'overworld') inviteNearest(); else msg('Invites happen in the store.', 1600); });
+  tap('chatBtn', () => { if (started && !chatOpen) openChat(); });
 
   // look area: drag to rotate
   const look = document.getElementById('lookArea');
@@ -347,8 +383,8 @@ function pollPad() {
   if (btn(9) && !input._ps) showTitle();
   input._ps = btn(9);
 }
-function edgeAttack() { const e = input.attack && !input._pa; input._pa = input.attack; return e; }
-function edgeInteract() { const e = input.interact && !input._pi; input._pi = input.interact; return e; }
+function edgeAttack() { const e = (input.attack && !input._pa) || !!input.attackPress; input.attackPress = false; input._pa = input.attack; return e; }
+function edgeInteract() { const e = (input.interact && !input._pi) || !!input.interactPress; input.interactPress = false; input._pi = input.interact; return e; }
 
 /* =================================================================
    3. TEXTURES / SPRITES
@@ -812,13 +848,13 @@ const DLG = {
   }
 };
 
-let dlgState = null;
+let dlgState = null; document.body.classList.remove('dlg');
 function talk(npcId) {
   const table = DLG[npcId];
   if (!table) return;
   const node = table[profile.questStage] || table.any;
   if (!node) return;
-  dlgState = { node, i: 0 };
+  dlgState = { node, i: 0 }; document.body.classList.add('dlg');
   document.getElementById('dialogue').style.display = 'block';
   renderDlg();
 }
@@ -827,15 +863,16 @@ function renderDlg() {
   const { node, i } = dlgState;
   document.querySelector('#dialogue .who').textContent = node.who;
   document.querySelector('#dialogue .line').textContent = node.lines[i];
+  const how = isTouch ? 'tap' : (getPad() ? 'A' : 'click / E');
   document.querySelector('#dialogue .more').textContent =
-    (i < node.lines.length - 1 ? 'click / E / A to continue' : 'click / E / A to close');
+    how + (i < node.lines.length - 1 ? ' to continue' : ' to close');
 }
 function advanceDlg() {
   if (!dlgState) return false;
   dlgState.i++;
   if (dlgState.i >= dlgState.node.lines.length) {
     const done = dlgState.node.done;
-    dlgState = null;
+    dlgState = null; document.body.classList.remove('dlg');
     document.getElementById('dialogue').style.display = 'none';
     if (done) done();
     return true;
@@ -950,13 +987,14 @@ controls.addEventListener('lock', () => { if (started) $('title').style.display 
 controls.addEventListener('unlock', () => { if (started && !chatOpen && !isTouch) $('title').style.display = 'flex'; });
 
 let chatOpen = false;
+function openChat() {
+  chatOpen = true;
+  $('chatinput').style.display = 'block';
+  const f = $('chatField'); f.value = ''; setTimeout(() => f.focus(), 0);
+  if (controls) controls.unlock();
+}
 addEventListener('keydown', (e) => {
-  if (e.code === 'Enter' && started && !chatOpen) {
-    e.preventDefault(); chatOpen = true;
-    $('chatinput').style.display = 'block';
-    const f = $('chatField'); f.value = ''; setTimeout(() => f.focus(), 0);
-    if (controls) controls.unlock();
-  }
+  if (e.code === 'Enter' && started && !chatOpen) { e.preventDefault(); openChat(); }
   if (e.code === 'KeyE' && started && !chatOpen) {
     if (!advanceDlg()) interact();
   }
@@ -969,6 +1007,9 @@ addEventListener('keydown', (e) => {
     $('credits').style.display = 'none';
   }
 });
+$('credits').addEventListener('pointerdown', () => { $('credits').style.display = 'none'; });
+$('dialogue').addEventListener('pointerdown', (e) => { if (isTouch && dlgState) { e.preventDefault(); e.stopPropagation(); advanceDlg(); } });
+if (isTouch) $('creditsHint').textContent = 'Tap to return, or refresh to start again.';
 $('chatField').addEventListener('keydown', (e) => {
   if (e.code === 'Enter') {
     const t = $('chatField').value.trim();
@@ -1132,22 +1173,26 @@ function loop() {
 
   /* prompt */
   if (started && !dlgState) {
-    let prompt = '';
+    let prompt = '', useLabel = 'USE';
+    const key = getPad() ? '[X]' : (isTouch ? '' : '[E]');
     if (mode === 'dungeon') {
-      if (floorCleared) prompt = '[E] Leave floor';
+      if (floorCleared) { prompt = key + ' Leave floor'; useLabel = 'LEAVE'; }
     } else if (ow) {
       const me = ow.state.players.get(myOwId);
       if (me) {
         for (const npc of overworldNpcs) {
           if (Math.hypot(npc.position.x - camera.position.x, npc.position.z - camera.position.z) < 3.2) {
-            prompt = '[E] Talk'; break;
+            prompt = key + ' Talk'; useLabel = 'TALK'; break;
           }
         }
-        if (!prompt && Math.hypot(camera.position.x, camera.position.z + OW.d / 2 - 0.5) < 3.5) prompt = '[E] The back door';
+        if (!prompt && Math.hypot(camera.position.x, camera.position.z + OW.d / 2 - 0.5) < 3.5) { prompt = key + ' The back door'; useLabel = 'DOOR'; }
       }
     }
+    prompt = prompt.trim();
+    if (isTouch && prompt) prompt = useLabel === 'TALK' ? 'TAP TALK' : 'TAP ' + useLabel + ' · ' + prompt;
     $('prompt').textContent = prompt;
     $('prompt').style.display = prompt ? 'block' : 'none';
+    const ib = $('interactBtn'); if (ib.textContent !== useLabel) ib.textContent = useLabel;
   } else {
     $('prompt').style.display = 'none';
   }
