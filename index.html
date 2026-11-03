@@ -87,23 +87,33 @@
   #touchLayer { position:fixed; inset:0; z-index:8; pointer-events:none; display:none; }
   #touchLayer.active { display:block; }
   #lookArea { position:absolute; right:0; top:0; width:55%; height:100%; pointer-events:auto; touch-action:none; }
-  #joystickBase { position:absolute; width:120px; height:120px; border-radius:50%;
-                  border:2px solid rgba(200,200,176,.3); background:rgba(10,10,20,.18);
-                  pointer-events:auto; touch-action:none; }
-  #joystickKnob { position:absolute; width:56px; height:56px; border-radius:50%;
-                  background:rgba(200,200,176,.32); border:2px solid rgba(200,200,176,.55);
-                  left:32px; top:32px; pointer-events:none; }
+  .stick { position:absolute; width:130px; height:130px; border-radius:50%;
+           border:2px solid rgba(200,200,176,.3); background:rgba(10,10,20,.22);
+           pointer-events:auto; touch-action:none; z-index:10; }
+  .stick .knob { position:absolute; width:60px; height:60px; border-radius:50%;
+                 background:rgba(200,200,176,.32); border:2px solid rgba(200,200,176,.55);
+                 left:35px; top:35px; pointer-events:none; }
+  .stick .lbl { position:absolute; left:0; right:0; bottom:-18px; text-align:center; font-size:9px;
+                letter-spacing:2px; color:rgba(200,200,176,.45); pointer-events:none; }
+  #joystickBase { left:22px; bottom:calc(34px + env(safe-area-inset-bottom)); }
+  #lookBase { right:22px; bottom:calc(34px + env(safe-area-inset-bottom)); }
+  #lookBase .knob { background:rgba(176,200,220,.3); border-color:rgba(176,200,220,.55); }
   #lookArea { z-index:1; }
   .tbtn { position:absolute; border-radius:50%; display:flex; flex-direction:column; align-items:center;
           justify-content:center; pointer-events:auto; touch-action:none; z-index:10; line-height:1;
           -webkit-user-select:none; user-select:none; letter-spacing:1px; }
   .tbtn.held { filter:brightness(1.6); }
-  #attackBtn { right:22px; bottom:calc(104px + env(safe-area-inset-bottom)); width:96px; height:96px;
-               border:2px solid rgba(220,120,120,.6); background:rgba(160,40,40,.28);
+  /* buttons sit just above the sticks, where the thumb flicks up to */
+  #attackBtn { right:30px; bottom:calc(188px + env(safe-area-inset-bottom)); width:92px; height:92px;
+               border:2px solid rgba(220,120,120,.6); background:rgba(160,40,40,.3);
                color:#f0c0c0; font-size:13px; }
-  #interactBtn { right:128px; bottom:calc(36px + env(safe-area-inset-bottom)); width:76px; height:76px;
-                 border:2px solid rgba(220,220,130,.55); background:rgba(110,110,40,.28);
+  #interactBtn { left:40px; bottom:calc(188px + env(safe-area-inset-bottom)); width:76px; height:76px;
+                 border:2px solid rgba(220,220,130,.55); background:rgba(110,110,40,.3);
                  color:#f0f0b0; font-size:12px; }
+  @media (orientation: landscape) {
+    #attackBtn { right:170px; bottom:calc(60px + env(safe-area-inset-bottom)); }
+    #interactBtn { left:170px; bottom:calc(60px + env(safe-area-inset-bottom)); }
+  }
   #touchBar { position:absolute; top:calc(10px + env(safe-area-inset-top)); left:50%; transform:translateX(-50%);
               display:flex; gap:8px; z-index:12; pointer-events:none; }
   #touchBar div { pointer-events:auto; touch-action:none; height:36px; min-width:44px; padding:0 10px; border-radius:8px;
@@ -114,7 +124,8 @@
   body.touch #status { top:calc(10px + env(safe-area-inset-top)); font-size:10px; max-width:34vw; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   body.touch #questPanel { top:calc(56px + env(safe-area-inset-top)); width:min(230px,60vw); }
   body.touch #partyPanel { top:calc(56px + env(safe-area-inset-top)); }
-  body.touch #prompt { top:auto; bottom:calc(150px + env(safe-area-inset-bottom)); font-size:14px; }
+  body.touch #prompt { top:auto; bottom:calc(290px + env(safe-area-inset-bottom)); font-size:14px; }
+  body.touch #lookArea { height:45%; }
   body.touch #chatinput { bottom:auto; top:calc(56px + env(safe-area-inset-top)); }
   body.touch #floorTag { bottom:calc(8px + env(safe-area-inset-bottom)); left:12px; right:auto; }
   body.touch #inputBadge { display:none; }
@@ -188,7 +199,8 @@
 
 <div id="touchLayer">
   <div id="lookArea"></div>
-  <div id="joystickBase"><div id="joystickKnob"></div></div>
+  <div id="joystickBase" class="stick"><div id="joystickKnob" class="knob"></div><span class="lbl">MOVE</span></div>
+  <div id="lookBase" class="stick"><div id="lookKnob" class="knob"></div><span class="lbl">LOOK</span></div>
   <div class="tbtn" id="attackBtn">ATTACK</div>
   <div class="tbtn" id="interactBtn">USE</div>
   <div id="touchBar">
@@ -215,7 +227,7 @@ const isTouch = window.matchMedia('(pointer: coarse)').matches &&
 document.getElementById('deviceHint').textContent = isTouch
   ? 'Touch controls on. Add to your home screen for full screen.'
   : 'Keyboard & mouse. Gamepad supported: L-stick move, R-stick look, A attack, X interact.';
-if (isTouch) document.getElementById('controlsHint').textContent = 'Left stick moves · drag the right side to look · ATTACK and USE buttons · QUEST / INVITE / CHAT / MENU up top';
+if (isTouch) document.getElementById('controlsHint').textContent = 'Left stick moves · right stick looks · ATTACK above the right stick, USE above the left · QUEST / INVITE / CHAT / MENU up top';
 
 let padIndex = null;
 const getPad = () => {
@@ -289,42 +301,34 @@ addEventListener('keydown', (e) => { keys[e.code] = true; });
 addEventListener('keyup', (e) => { keys[e.code] = false; });
 
 (function touchControls() {
-  const base = document.getElementById('joystickBase');
-  const knob = document.getElementById('joystickKnob');
-  let active = null;
-  const reset = () => {
-    const vh = (window.visualViewport ? visualViewport.height : innerHeight);
-    base.style.left = '26px';
-    base.style.top = (vh - 40 - 120) + 'px';
-    knob.style.left = '32px'; knob.style.top = '32px';
-    input.mx = 0; input.mz = 0;
+  // one factory for both sticks: returns {x,y} in -1..1, knob follows the thumb
+  const makeStick = (baseId, knobId, onChange) => {
+    const base = document.getElementById(baseId), knob = document.getElementById(knobId);
+    let active = null;
+    const R = 65, K = 35, MAX = 46;
+    const set = (dx, dy) => { knob.style.left = (K + dx) + 'px'; knob.style.top = (K + dy) + 'px'; onChange(dx / MAX, dy / MAX); };
+    base.addEventListener('pointerdown', (e) => {
+      if (active !== null) return;
+      active = e.pointerId; try { base.setPointerCapture(e.pointerId); } catch (_) {}
+      const r = base.getBoundingClientRect();
+      let dx = e.clientX - (r.left + R), dy = e.clientY - (r.top + R);
+      const len = Math.hypot(dx, dy); if (len > MAX) { dx = dx / len * MAX; dy = dy / len * MAX; }
+      set(dx, dy); e.preventDefault();
+    });
+    base.addEventListener('pointermove', (e) => {
+      if (e.pointerId !== active) return;
+      const r = base.getBoundingClientRect();
+      let dx = e.clientX - (r.left + R), dy = e.clientY - (r.top + R);
+      const len = Math.hypot(dx, dy); if (len > MAX) { dx = dx / len * MAX; dy = dy / len * MAX; }
+      set(dx, dy); e.preventDefault();
+    });
+    const end = (e) => { if (e.pointerId === active) { active = null; set(0, 0); } };
+    base.addEventListener('pointerup', end);
+    base.addEventListener('pointercancel', end);
+    base.addEventListener('lostpointercapture', () => { active = null; set(0, 0); });
   };
-  reset();
-  addEventListener('resize', reset);
-  if (window.visualViewport) visualViewport.addEventListener('resize', reset);
-
-  base.addEventListener('pointerdown', (e) => {
-    if (active !== null) return;
-    active = e.pointerId;
-    base.setPointerCapture(e.pointerId);
-    base.style.left = (e.clientX - 60) + 'px';
-    base.style.top = (e.clientY - 60) + 'px';
-    knob.style.left = '32px'; knob.style.top = '32px';
-    e.preventDefault();
-  });
-  base.addEventListener('pointermove', (e) => {
-    if (e.pointerId !== active) return;
-    const r = base.getBoundingClientRect();
-    let dx = e.clientX - (r.left + 60), dy = e.clientY - (r.top + 60);
-    const len = Math.hypot(dx, dy), max = 44;
-    if (len > max) { dx = dx / len * max; dy = dy / len * max; }
-    knob.style.left = (32 + dx) + 'px'; knob.style.top = (32 + dy) + 'px';
-    input.mx = dx / max; input.mz = dy / max;
-    e.preventDefault();
-  });
-  const end = (e) => { if (e.pointerId === active) { active = null; reset(); } };
-  base.addEventListener('pointerup', end);
-  base.addEventListener('pointercancel', end);
+  makeStick('joystickBase', 'joystickKnob', (x, y) => { input.mx = x; input.mz = y; });
+  makeStick('lookBase', 'lookKnob', (x, y) => { input.lx = x; input.ly = y; });
 
   const hold = (el, key) => {
     const off = () => { input[key] = false; el.classList.remove('held'); };
@@ -1116,6 +1120,11 @@ function loop() {
   if (keys['KeyA']) input.mx = -1; else if (keys['KeyD']) input.mx = 1;
   else if (!isTouch && !getPad()) input.mx = 0;
 
+  if (input.lx || input.ly) {
+    const curve = (v) => Math.sign(v) * Math.pow(Math.abs(v), 1.6);   // gentle centre, fast at the rim
+    camera.rotation.y -= curve(input.lx) * 2.6 * dt;
+    camera.rotation.x -= curve(input.ly) * 1.8 * dt;
+  }
   if (keys['ArrowRight']) camera.rotation.y -= 1.6 * dt;
   if (keys['ArrowLeft']) camera.rotation.y += 1.6 * dt;
   camera.rotation.x = THREE.MathUtils.clamp(camera.rotation.x, -1.3, 1.3);
